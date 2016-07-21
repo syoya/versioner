@@ -26,20 +26,14 @@ func main() {
 		if isVersionFile() {
 			log.Fatalln("Cat't create versioning file. Versioning file already exists.")
 		}
-		content := []byte("v0.1.0")
-		if err := ioutil.WriteFile(filename, content, os.ModePerm); err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println("Versioning file was created.")
-		return
+		createVersionFile()
 	case show.FullCommand():
-		content, err := readVersion()
-		if err != nil {
-			log.Fatalln("Can't open versioning file.", err)
-		}
-		fmt.Print(string(content))
-		return
+		showVersion()
 	case bump.FullCommand():
+		if !isVersionFile() {
+			createVersionFile()
+			break
+		}
 		content, err := readVersion()
 		if err != nil {
 			log.Fatalln("Can't open versioning file.", err)
@@ -48,8 +42,6 @@ func main() {
 		if err != nil {
 			log.Fatalln("Versioning format is invalid.", err)
 		}
-		fmt.Println("Version is", v.String())
-
 		cv := v.Segments()
 		cv[len(cv)-1] += 1
 		nv := make([]string, len(cv))
@@ -64,7 +56,6 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Println("Versioning file was updated.")
-		return
 	}
 }
 
@@ -79,10 +70,29 @@ func readVersion() ([]byte, error) {
 	return ioutil.ReadAll(r)
 }
 
+func showVersion() {
+	content, err := readVersion()
+	if err != nil {
+		log.Fatalln("Can't open versioning file.", err)
+	}
+	fmt.Print(string(content))
+	return
+}
+
 func isVersionFile() bool {
 	_, err := os.Open(filename)
 	if err != nil {
 		return false
 	}
 	return true
+}
+
+func createVersionFile() {
+	content := []byte("v0.1.0")
+	if err := ioutil.WriteFile(filename, content, os.ModePerm); err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println("Versioning file was created.")
+	showVersion()
+	return
 }
