@@ -1,2 +1,2 @@
-# versioning
-Create version file
+# versioner
+Create a versioning file
